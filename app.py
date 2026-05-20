@@ -50,13 +50,19 @@ def load_knowledge_base():
 # ======================
 # RETRIEVAL (COSINE SIMILARITY)
 # ======================
-def retrieve_context(query, chunks, embeddings, embedder, top_k=3):
-    q_emb = embedder.encode([query])
+def retrieve_context(query, chunks, embeddings=None, embedder=None):
+    # SIMPLE TEXT MATCH (NO ML)
+    query = query.lower()
 
-    scores = cosine_similarity(q_emb, embeddings)[0]
-    top_idx = scores.argsort()[-top_k:][::-1]
+    scored = []
+    for c in chunks:
+        score = sum(1 for w in query.split() if w in c.lower())
+        scored.append((score, c))
 
-    return "\n\n".join([chunks[i] for i in top_idx])
+    scored.sort(reverse=True, key=lambda x: x[0])
+
+    top = [c for _, c in scored[:3]]
+    return "\n\n".join(top)
 
 
 # ======================
