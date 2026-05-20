@@ -3,9 +3,10 @@ import os
 import numpy as np
 from pathlib import Path
 from dotenv import load_dotenv
+from sklearn.metrics.pairwise import cosine_similarity
 
 # ======================
-# LOAD ENV FIRST (IMPORTANT)
+# ENV LOAD
 # ======================
 load_dotenv()
 
@@ -21,12 +22,11 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # ======================
-# LOAD KB + FAISS
+# LOAD KB + EMBEDDINGS (NO FAISS)
 # ======================
 @st.cache_resource(show_spinner="Loading Knowledge Base...")
 def load_knowledge_base():
     from sentence_transformers import SentenceTransformer
-    import faiss
 
     kb_path = Path(__file__).parent / "finance_kb.txt"
 
@@ -42,21 +42,21 @@ def load_knowledge_base():
     embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
     embeddings = embedder.encode(chunks)
-    embeddings = np.array(embeddings).astype("float32")
+    embeddings = np.array(embeddings)
 
-    index = faiss.IndexFlatL2(embeddings.shape[1])
-    index.add(embeddings)
-
-    return chunks, index, embedder
+    return chunks, embeddings, embedder
 
 
-def retrieve_context(query, chunks, index, embedder, top_k=3):
+# ======================
+# RETRIEVAL (COSINE SIMILARITY)
+# ======================
+def retrieve_context(query, chunks, embeddings, embedder, top_k=3):
     q_emb = embedder.encode([query])
-    q_emb = np.array(q_emb).astype("float32")
 
-    _, idxs = index.search(q_emb, top_k)
+    scores = cosine_similarity(q_emb, embeddings)[0]
+    top_idx = scores.argsort()[-top_k:][::-1]
 
-    return "\n\n".join([chunks[i] for i in idxs[0] if i < len(chunks)])
+    return "\n\n".join([chunks[i] for i in top_idx])
 
 
 # ======================
@@ -79,13 +79,13 @@ def get_groq_response(user_message, context, chat_history):
 You are a Finance AI Assistant.
 
 ROLE:
-Help users with personal finance, budgeting, savings, investment basics, and financial planning.
+Help users with budgeting, saving, investing basics, and financial literacy.
 
 RULES:
 - Simple language
-- Practical examples
-- If info not in context, say you don't know
-- Keep answers short
+- Real-life examples
+- Short answers
+- If unknown, say you don't know
 
 CONTEXT:
 {context}
@@ -116,9 +116,9 @@ CONTEXT:
 # ======================
 st.title("💰 Finance Literacy AI Assistant")
 
-chunks, index, embedder = load_knowledge_base()
+chunks, embeddings, embedder = load_knowledge_base()
 
-# chat history render
+# show chat history
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
@@ -132,7 +132,7 @@ if prompt:
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    context = retrieve_context(prompt, chunks, index, embedder)
+    context = retrieve_context(prompt, chunks, embeddings, embedder)
 
     response = get_groq_response(prompt, context, st.session_state.messages)
 
