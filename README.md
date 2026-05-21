@@ -1,41 +1,35 @@
-# Al-Mizan Online Quran Academy
+# Finance Literacy AI Chatbot
 
-Personal website + RAG-powered AI chatbot for Al-Mizan Online Quran Academy, founded by Qari Hafiz Ubaid ur Rehman.
+RAG-powered AI chatbot focused on personal finance literacy, budgeting, and investment basics.
 
 ## Project Structure
 
 ```
-al-meezan/
-├── index.htm              <- Main academy website
+finance-bot/
+├── index.html             <- Demo website with integrated chatbot
 ├── app.py                 <- AI chatbot (Streamlit + Groq RAG)
-├── quran_academy_kb.txt   <- Chatbot knowledge base
+├── finance_kb.txt         <- Chatbot knowledge base
 ├── requirements.txt       <- Python dependencies
 └── .streamlit/
-    └── secrets.toml.example  <- API key template
+    └── secrets.toml       <- API key storage
 ```
 
-## Deploy the AI Chatbot (Free - Streamlit Cloud)
+## Deploy the AI Chatbot
 
 1. Go to https://streamlit.io/cloud and sign in with GitHub
 2. Click New app, select this repo, set Main file path to app.py
 3. Under Advanced settings > Secrets, paste:
    GROQ_API_KEY = "your_key_here"
 4. Get a free Groq API key at https://console.groq.com
-5. Click Deploy - you will get a URL like https://your-app.streamlit.app
+5. Click Deploy
 
 ## Connect Chatbot to Website
 
-After deploying, open index.htm and find this line near the bottom:
-
-   var CHATBOT_URL = "https://al-meezan-chatbot.streamlit.app";
-
-Replace it with your real Streamlit Cloud URL.
+After deploying, open index.html and update the CHATBOT URL with your real Streamlit Cloud URL.
 
 ## Run Locally
 
+```powershell
 pip install -r requirements.txt
 streamlit run app.py
-
----
-2025 Al-Mizan Online Quran Academy - Qari Hafiz Ubaid ur Rehman
-"# finance_bot" 
+```
