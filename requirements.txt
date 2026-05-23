@@ -1,2 +1,5 @@
 streamlit
-openai
+groq
+faiss-cpu
+sentence-transformers
+numpy
