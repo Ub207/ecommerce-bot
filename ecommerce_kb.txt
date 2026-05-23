@@ -1,0 +1,4 @@
+Our store sells shoes and shirts.
+Return policy is 7 days.
+Shipping takes 3-5 days.
+We are located in Karachi.
